@@ -1,28 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
-from scipy.ndimage import gaussian_filter
-import porespy as ps
 
-#%%
-#Create "names" list and "folders" list where the following folder structure is 
-#assumed:
-    #F:/WORK/Aerogel/VO43aF/Recon_VO43aF_1
-    #F:/WORK/Aerogel/VO43aF/Recon_VO43aF_2
-    # ...
-    #F:/WORK/Aerogel/VO43aF/Recon_VO43aF_10
-#and similarly for the others:
-    #F:/WORK/Aerogel/VO43bN/Recon_VO43bN_1
-    # ...
-    
-folder_name = '/WORK/Aerogel/VO'
-
-folders = glob.glob(folder_name+'*/*/')
-order = [i+10*j for j in range(4) for i in [0]+list(range(2,10))+[1]]
-folders = [folders[i] for i in order]
-names = [name[name.find('VO',20):-1] for name in folders]
-
-print(names)
 #%% init plotting
 n_r = 30 
 n_c = 30 
@@ -134,34 +112,12 @@ for j in idx:
 plt.xlabel('Distance to carbon fibers (pixels)')
 plt.ylabel('Porosity')
 plt.legend()
-#%% Plot image slices from all images
-base_folder = 'F:/WORK/Aerogel/normed_vols3/'
-k = 100
-pics = []
-for i in range(40):
-    vol = np.load(base_folder+names[i]+'.npy',allow_pickle=True)
-    pic = vol[k].copy()
-    #vol.close()
-    del vol
-    pics.append(pic)
-    print(i)
-fig,ax = plt.subplots(ncols=10,nrows=4)
-Q = [0.01,0.99]
-bbox = np.array([0.0,0.5,0.4,0.6])
-for j in range(10):
-    for i in range(4):
-        pic = pics[i*10+j]
-        Qs = np.quantile(pic,Q)
-        pic[pic<Qs[0]] = Qs[0]
-        pic[pic>Qs[1]] = Qs[1]
-        bbox = np.array([0.0,0.5,0.4,0.6])
-        b = (np.array(pic.shape)[[0,0,1,1]]*bbox).astype(int)
-        pic = pic[b[0]:b[1],b[2]:b[3]]
-        ax[i,j].imshow(pic,cmap='gray')
-        ax[i,j].axis('off')
-#%%
-plt.tight_layout(pad=0,h_pad=None,w_pad=None,rect=None)
 #%% Create array containing nice looking histograms of local thickness distribution
+
+#Histograms were originally produces by porespy but are quite bad since they
+#just approximate the local thickness in a discrete manner, therefore we do
+#some post processing to make the histograms nicer.
+
 #The 3D array bin_pdf contains the 40 different volumes across the 1st 
 #dimension, the different volume radii for the 2nd dimension. The last 
 #dimension is the dimension across which we store the local thickness 
